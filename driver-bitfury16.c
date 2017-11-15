@@ -992,6 +992,8 @@ static void init_x5(struct cgpu_info *bitfury)
 
 	for (board_id = 0; board_id < CHIPBOARD_NUM; board_id++) {
 		/* detect board */
+		info->chipboard[board_id].bcm250 = NULL;
+
 		char buff[256];
 		memset(buff, 0, sizeof(buff));
 
@@ -1048,7 +1050,7 @@ static void deinit_x5(struct cgpu_info *bitfury)
 {
 	uint8_t board_id, bcm250_id, chip_id;
 	struct bitfury16_info *info = (struct bitfury16_info *)(bitfury->device_data);
-
+ 
 	workd_list_deinit(info->work_list,       bitfury);
 	workd_list_deinit(info->stale_work_list, bitfury);
 
@@ -1060,22 +1062,27 @@ static void deinit_x5(struct cgpu_info *bitfury)
 		renonce_list_deinit(info->renonce_list);
 	}
 
-	for (board_id = 0; board_id < CHIPBOARD_NUM; board_id++) {
-		for (bcm250_id = 0; bcm250_id < BCM250_NUM; bcm250_id++) {
-			free(info->chipboard[board_id].bcm250[bcm250_id].channel_path);
+	if(info->chipboard != NULL)	{
+		for (board_id = 0; board_id < CHIPBOARD_NUM; board_id++) 
+		{
+			if(info->chipboard[board_id].detected)
+			{
+				for (bcm250_id = 0; bcm250_id < BCM250_NUM; bcm250_id++) {
+					free(info->chipboard[board_id].bcm250[bcm250_id].channel_path);
 
-			uint8_t first_good_chip = info->chipboard[board_id].bcm250[bcm250_id].first_good_chip;
-			uint8_t last_good_chip  = info->chipboard[board_id].bcm250[bcm250_id].last_good_chip;
+					uint8_t first_good_chip = info->chipboard[board_id].bcm250[bcm250_id].first_good_chip;
+					uint8_t last_good_chip  = info->chipboard[board_id].bcm250[bcm250_id].last_good_chip;
 
-			for (chip_id = first_good_chip; chip_id < last_good_chip; chip_id++)
-				nonce_list_deinit(info->chipboard[board_id].bcm250[bcm250_id].chips[chip_id].nonce_list);
+					for (chip_id = first_good_chip; chip_id < last_good_chip; chip_id++)
+						nonce_list_deinit(info->chipboard[board_id].bcm250[bcm250_id].chips[chip_id].nonce_list);
+					}
+				free(info->chipboard[board_id].bcm250);
+
+				cmd_buffer_deinit(&info->chipboard[board_id].cmd_buffer);
+			}
 		}
-		free(info->chipboard[board_id].bcm250);
-
-		cmd_buffer_deinit(&info->chipboard[board_id].cmd_buffer);
+		free(info->chipboard);
 	}
-
-	free(info->chipboard);
 }
 
 static void bitfury16_set_clock(struct cgpu_info *bitfury) 
@@ -1216,7 +1223,7 @@ static void bitfury16_detect(bool hotplug)
 	if (unlikely(!bitfury))
 		quit(1, "%s: %s() failed to malloc bitfury",
 				bitfury->drv->name, __func__);
-
+	
 	bitfury->drv = &bitfury16_drv;
 	bitfury->deven = DEV_ENABLED;
 	bitfury->threads = 1;
@@ -1226,6 +1233,7 @@ static void bitfury16_detect(bool hotplug)
 		quit(1, "%s: %s() failed to malloc info",
 				bitfury->drv->name, __func__);
 
+	info->chipboard = NULL;
 	bitfury->device_data = info;
 
 	/* manual PID option */
