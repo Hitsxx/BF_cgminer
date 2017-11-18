@@ -7020,8 +7020,10 @@ retry_stratum:
 				if (unlikely(!pool->gbt_curl))
 					quit(1, "GBT CURL initialisation failed");
 				pool->gbt_solo = true;
+#ifdef HAVE_LIBCURL
 				if (!opt_btcd)
 					opt_btcd = pool;
+#endif
 			}
 		}
 		/* Reset this so we can probe fully just after this. It will be
