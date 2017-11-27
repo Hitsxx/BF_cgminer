@@ -6,6 +6,7 @@
 #include "bf16-spidevice.h"
 #include "miner.h"
 
+// Hardcoded SPI channels paths
 char *spi0_device_name  = "/dev/spidev1.1";
 char *spi1_device_name  = "/dev/spidev2.1";
 
@@ -13,10 +14,10 @@ int8_t spi_init(device_t* attr, spi_channel_id_t channel_id, int8_t mode, uint32
 {
 	switch (channel_id) {
 	case SPI_CHANNEL1:
-		attr->device = spi1_device_name;
+		attr->device = spi0_device_name;
 		break;
 	case SPI_CHANNEL2:
-		attr->device = spi0_device_name;
+		attr->device = spi1_device_name;
 		break;
 	}
 
