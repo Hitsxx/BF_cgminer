@@ -11,9 +11,10 @@
  */
 
 #include "config.h"
+#include "compat.h"
 
 #ifdef HAVE_CURSES
-#include <curses.h>
+#include <ncurses\curses.h>
 #endif
 
 #include <stdio.h>
@@ -57,11 +58,10 @@ char *curly = ":D";
 #include <libgen.h>
 #include <sha2.h>
 
-#include "compat.h"
 #include "miner.h"
 #include "bench_block.h"
 #ifdef USE_USBUTILS
-#include "usbutils.h"
+	#include "usbutils.h"
 #endif
 
 #if defined(unix) || defined(__APPLE__)
@@ -190,7 +190,7 @@ unsigned long global_quota_gcd = 1;
 time_t last_getwork;
 int opt_pool_fallback = 120;
 
-#if defined(USE_USBUTILS)
+#ifdef USE_USBUTILS
 int nDevs;
 #endif
 bool opt_restart = true;
@@ -2232,7 +2232,7 @@ static char *opt_verusage_and_exit(const char *extra)
 	exit(0);
 }
 
-#if defined(USE_USBUTILS)
+#ifdef USE_USBUTILS
 char *display_devs(int *ndevs)
 {
 	*ndevs = 0;
@@ -2254,7 +2254,7 @@ static struct opt_table opt_cmdline_table[] = {
 	OPT_WITHOUT_ARG("--help|-h",
 			opt_verusage_and_exit, NULL,
 			"Print this message"),
-#if defined(USE_USBUTILS)
+#ifdef USE_USBUTILS
 	OPT_WITHOUT_ARG("--ndevs|-n",
 			display_devs, &nDevs,
 			"Display all USB devices and exit"),

@@ -10,6 +10,7 @@
  */
 
 #include "config.h"
+#include "compat.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,7 +43,6 @@
 
 #include "miner.h"
 #include "elist.h"
-#include "compat.h"
 #include "util.h"
 
 #define DEFAULT_SOCKWAIT 60
@@ -1733,7 +1733,7 @@ retry:
 		}
 #ifdef __APPLE__
 		sent = send(pool->sock, s + ssent, len, SO_NOSIGPIPE);
-#elif WIN32
+#elif defined(WIN32)
 		sent = send(pool->sock, s + ssent, len, 0);
 #else
 		sent = send(pool->sock, s + ssent, len, MSG_NOSIGNAL);

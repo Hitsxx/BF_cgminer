@@ -29,7 +29,7 @@
 	{
 		return (errno == EINTR);
 	}
-#elif defined WIN32
+#elif defined(WIN32)
 	#include <winsock2.h>
 	#include <windows.h>
 	#include <ws2tcpip.h>
