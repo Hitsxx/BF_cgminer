@@ -97,6 +97,7 @@ static uint8_t analyze_rx_data(bf_command_t* command, bf_cmd_status_t* cmd_statu
 		/* fill nonces buffer */
 		for (i = 0; i <= 48; i++) {
 			if ((i % 4 == 0) && (i != 0)) {
+				/* Apply mask */
 				if ((nonce & 0x0fffffff) != 0x0fffffff)
 					nonce ^= 0xaaaaaaaa;
 				nonces[i/4 - 1] = nonce;
@@ -107,6 +108,7 @@ static uint8_t analyze_rx_data(bf_command_t* command, bf_cmd_status_t* cmd_statu
 				nonce = 0x00000000;
 			}
 
+			/* Reverse byte order for nonces */
 			nonce |= (command->rx[i + 2] << 8*(4 - (i%4) - 1));
 		}
 
@@ -118,6 +120,7 @@ static uint8_t analyze_rx_data(bf_command_t* command, bf_cmd_status_t* cmd_statu
 		applog(LOG_DEBUG, "BF16: RX <- [%s]", data);
 #endif
 
+		/* Calculate checksum */
 		for (i = 0; i < 48; i ++)
 			command->nonce_checksum += command->rx[i + 2];
 		command->nonce_checksum += command->rx[1];
@@ -469,6 +472,7 @@ bool match_nonce(uint32_t nonce, uint32_t mask, uint8_t nbits)
 	return ((nonce & fixed_mask) == (mask & fixed_mask));
 }
 
+/* Save unique nonces to valid_nonces */
 uint8_t find_nonces(uint32_t* curr_nonces, uint32_t* prev_nonces, uint32_t* valid_nonces)
 {
 	uint8_t i, j;
@@ -494,11 +498,13 @@ uint8_t find_nonces(uint32_t* curr_nonces, uint32_t* prev_nonces, uint32_t* vali
 		if (found_nonces[i] == 0x00000000)
 			continue;
 
+		/* Exclude repeated nonces */
 		for (j = i; j < found; j++) {
 			if ((j != i) && (found_nonces[i] == found_nonces[j]))
 				found_nonces[j] = 0x00000000;
 		}
 
+		/* Include only unique nonces */
 		valid_nonces[nonces++] = found_nonces[i];
 	}
 
@@ -647,6 +653,7 @@ uint32_t gen_mask(uint32_t nonce, uint8_t nbits)
 	return mask;
 }
 
+/* Fill midstate value after 3 rounds to task */
 void ms3steps16(uint32_t* p, uint32_t* w, uint32_t* task)
 {
 	uint32_t a, b, c, d, e, f, g, h, new_e, new_a;
@@ -684,6 +691,7 @@ void ms3steps16(uint32_t* p, uint32_t* w, uint32_t* task)
 	task[8]  = ntohl(h ^ 0xaaaaaaaa);
 }
 
+/* Generate task write data for ASIC */
 uint8_t gen_task_data(uint32_t* midstate, uint32_t merkle, uint32_t ntime,
 		uint32_t nbits, uint32_t mask, uint8_t* task)
 {
@@ -693,8 +701,9 @@ uint8_t gen_task_data(uint32_t* midstate, uint32_t merkle, uint32_t ntime,
 
 	w[0] = merkle;
 	w[1] = ntime;
-	w[2] = nbits;
+	w[2] = nbits; /* Target in short form (depend on difficulty) */
 
+	/* Fill midstate source task[0..7] */
 	for (i = 0; i < 8; i++) {
 		tmp = midstate[i];
 		tmp ^= 0xaaaaaaaa;
@@ -702,6 +711,7 @@ uint8_t gen_task_data(uint32_t* midstate, uint32_t merkle, uint32_t ntime,
 		cg_memcpy(task + i*4, &tmp, sizeof(tmp));
 	}
 
+	/* Fill Midstate value after 3 rounds task[8..11] task[15..18] */
 	ms3steps16(midstate, w, (uint32_t*)task);
 
 	for (i = 0; i < 3; i++) {

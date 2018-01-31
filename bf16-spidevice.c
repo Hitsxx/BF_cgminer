@@ -6,6 +6,7 @@
 #include "bf16-spidevice.h"
 #include "miner.h"
 
+/* Hardcoded SPI devices */
 char *spi0_device_name  = "/dev/spidev1.1";
 char *spi1_device_name  = "/dev/spidev2.1";
 

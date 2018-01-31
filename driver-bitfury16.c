@@ -568,6 +568,7 @@ static void increase_task_switch(struct bitfury16_info *info, bf_chip_address_t 
 	info->task_switch_dx++;
 }
 
+/* Increase error counters */
 static void increase_errors(struct bitfury16_info *info, bf_chip_address_t chip_address)
 {
 	uint8_t board_id  = chip_address.board_id;
@@ -1050,7 +1051,7 @@ static void deinit_x5(struct cgpu_info *bitfury)
 {
 	uint8_t board_id, bcm250_id, chip_id;
 	struct bitfury16_info *info = (struct bitfury16_info *)(bitfury->device_data);
- 
+
 	workd_list_deinit(info->work_list,       bitfury);
 	workd_list_deinit(info->stale_work_list, bitfury);
 
