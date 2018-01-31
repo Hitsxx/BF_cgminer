@@ -11,8 +11,7 @@ typedef enum {
 	SPI_CHANNEL2
 } spi_channel_id_t;
 
-extern char *spi0_device_name;
-extern char *spi1_device_name;
+extern char *spi_device_names[];
 
 int8_t spi_init(device_t* attr, spi_channel_id_t channel_id,
 		int8_t mode, uint32_t speed, uint16_t size);

@@ -965,8 +965,8 @@ static void reinit_x5(struct bitfury16_info *info, bool chip_reinit)
 	}
 
 	/* send reset to all boards */
-	spi_emit_reset(SPI_CHANNEL1);
-	spi_emit_reset(SPI_CHANNEL2);
+	for (board_id = 0; board_id < CHIPBOARD_NUM; board_id++)
+		spi_emit_reset(board_id + 1);
 }
 
 static void init_x5(struct cgpu_info *bitfury)
@@ -1092,8 +1092,8 @@ static void bitfury16_set_clock(struct cgpu_info *bitfury)
 	struct bitfury16_info *info = (struct bitfury16_info *)bitfury->device_data;
 
 	/* send reset to all boards */
-	spi_emit_reset(SPI_CHANNEL1);
-	spi_emit_reset(SPI_CHANNEL2);
+	for (board_id = 0; board_id < CHIPBOARD_NUM; board_id++)
+		spi_emit_reset(board_id + 1);
 
 	/* board loop */
 	for (board_id = 0; board_id < CHIPBOARD_NUM; board_id++) {
@@ -1262,17 +1262,14 @@ static void bitfury16_detect(bool hotplug)
 		bf16_chip_clock = 0x20;
 
 	/* open devices */
-	if (open_spi_device(SPI_CHANNEL1) < 0)
-		quit(1, "%s: %s() failed to open [%s] device",
-				bitfury->drv->name, __func__, spi0_device_name);
+	for (board_id = 0; board_id < CHIPBOARD_NUM; board_id++)
+	{
+		if (open_spi_device(board_id + 1) < 0)
+			quit(1, "%s: %s() failed to open [%s] device",
+					bitfury->drv->name, __func__, spi_device_names[board_id]);
 
-	applog(LOG_INFO, "%s: opened [%s] device", bitfury->drv->name, spi0_device_name);
-
-	if (open_spi_device(SPI_CHANNEL2) < 0)
-		quit(1, "%s: %s() failed to open [%s] device",
-				bitfury->drv->name, __func__, spi1_device_name);
-
-	applog(LOG_INFO, "%s: opened [%s] device", bitfury->drv->name, spi1_device_name);
+		applog(LOG_INFO, "%s: opened [%s] device", bitfury->drv->name, spi_device_names[board_id]);
+	}
 
 	if (open_ctrl_device() < 0)
 		quit(1, "%s: %s() failed to open [%s] device",
@@ -1280,17 +1277,14 @@ static void bitfury16_detect(bool hotplug)
 
 	applog(LOG_INFO, "%s: opened [%s] device", bitfury->drv->name, ctrl_device_name);
 
-	if (open_uart_device(UART_CHANNEL1) < 0)
-		quit(1, "%s: %s() failed to open [%s] device",
-				bitfury->drv->name, __func__, uart1_device_name);
+	for (board_id = 0; board_id < CHIPBOARD_NUM; board_id++)
+	{
+		if (open_uart_device(board_id + 1) < 0)
+			quit(1, "%s: %s() failed to open [%s] device",
+					bitfury->drv->name, __func__, uart_device_names[board_id]);
 
-	applog(LOG_INFO, "%s: opened [%s] device", bitfury->drv->name, uart1_device_name);
-
-	if (open_uart_device(UART_CHANNEL2) < 0)
-		quit(1, "%s: %s() failed to open [%s] device",
-				bitfury->drv->name, __func__, uart2_device_name);
-
-	applog(LOG_INFO, "%s: opened [%s] device", bitfury->drv->name, uart2_device_name);
+		applog(LOG_INFO, "%s: opened [%s] device", bitfury->drv->name, uart_device_names[board_id]);
+	}
 
 	init_x5(bitfury);
 
@@ -1523,11 +1517,11 @@ static void bitfury16_detect(bool hotplug)
 		deinit_x5(bitfury);
 
 		/* close devices */
-		close_spi_device(SPI_CHANNEL1);
-		close_spi_device(SPI_CHANNEL2);
+		for (board_id = 0; board_id < CHIPBOARD_NUM; board_id++)
+			close_spi_device(board_id + 1);
 		close_ctrl_device();
-		close_uart_device(UART_CHANNEL1);
-		close_uart_device(UART_CHANNEL2);
+		for (board_id = 0; board_id < CHIPBOARD_NUM; board_id++)
+			close_uart_device(board_id + 1);
 
 #ifdef FILELOG
 		fclose(info->logfile);
@@ -2456,8 +2450,8 @@ static void *bitfury_chipworker(void *userdata)
 	}
 
 	/* send reset sequence to boards */
-	spi_emit_reset(SPI_CHANNEL1);
-	spi_emit_reset(SPI_CHANNEL2);
+	for (board_id = 0; board_id < CHIPBOARD_NUM; board_id++)
+		spi_emit_reset(board_id + 1);
 
 	while (bitfury->shutdown == false) {
 		if ((info->a_temp == false) &&
@@ -4654,11 +4648,13 @@ static void bitfury16_shutdown(struct thr_info *thr)
 	mutex_destroy(&info->nonces_good_lock);
 
 	/* close devices */
-	close_spi_device(SPI_CHANNEL1);
-	close_spi_device(SPI_CHANNEL2);
+	for (board_id = 0; board_id < CHIPBOARD_NUM; board_id++)
+		close_spi_device(board_id + 1);
+
 	close_ctrl_device();
-	close_uart_device(UART_CHANNEL1);
-	close_uart_device(UART_CHANNEL2);
+
+	for (board_id = 0; board_id < CHIPBOARD_NUM; board_id++)
+		close_uart_device(board_id + 1);
 
 #ifdef FILELOG
 	filelog(info, "%s: cgminer stopped", bitfury->drv->name);

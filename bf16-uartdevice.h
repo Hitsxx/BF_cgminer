@@ -12,8 +12,7 @@ typedef enum {
 	UART_CHANNEL2
 } uart_channel_id_t;
 
-extern char *uart1_device_name;
-extern char *uart2_device_name;
+extern char *uart_device_names[];
 
 int8_t uart_init(device_t* attr, uart_channel_id_t channel_id,
 		int8_t mode, uint32_t speed, uint16_t size);

@@ -6,17 +6,20 @@
 
 #define SRV_TIMEOUT 2
 
-char *uart1_device_name = "/dev/ttyO1";
-char *uart2_device_name = "/dev/ttyO4";
+char *uart_device_names[] =
+{
+	"/dev/ttyO1",
+	"/dev/ttyO4"
+};
 
 int8_t uart_init(device_t* attr, uart_channel_id_t channel_id, int8_t mode, uint32_t speed, uint16_t size)
 {
 	switch (channel_id) {
 	case UART_CHANNEL1:
-		attr->device = uart1_device_name;
+		attr->device = uart_device_names[0];
 		break;
 	case UART_CHANNEL2:
-		attr->device = uart2_device_name;
+		attr->device = uart_device_names[1];
 		break;
 	}
 

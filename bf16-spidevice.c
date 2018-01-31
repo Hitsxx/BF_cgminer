@@ -6,18 +6,22 @@
 #include "bf16-spidevice.h"
 #include "miner.h"
 
-/* Hardcoded SPI devices */
-char *spi0_device_name  = "/dev/spidev1.1";
-char *spi1_device_name  = "/dev/spidev2.1";
+/* Hardcoded SPI interfaces paths */
+char *spi_device_names[] =
+{
+	"/dev/spidev1.1", /* SPI_CHANNEL1 */
+	"/dev/spidev2.1"  /* SPI_CHANNEL2 */
+};
 
+/* Configure SPI interface */
 int8_t spi_init(device_t* attr, spi_channel_id_t channel_id, int8_t mode, uint32_t speed, uint16_t size)
 {
 	switch (channel_id) {
 	case SPI_CHANNEL1:
-		attr->device = spi1_device_name;
+		attr->device = spi_device_names[0];
 		break;
 	case SPI_CHANNEL2:
-		attr->device = spi0_device_name;
+		attr->device = spi_device_names[1];
 		break;
 	}
 
@@ -37,34 +41,34 @@ int8_t spi_init(device_t* attr, spi_channel_id_t channel_id, int8_t mode, uint32
 
 	/* SPI mode */
 	if (ioctl(fd, SPI_IOC_WR_MODE, &(attr->mode)) < 0) {
-		applog(LOG_ERR, "BF16: %s() failed to set SPI mode: %s", __func__, strerror(errno));
+		applog(LOG_ERR, "BF16: %s() failed to set SPI write mode: %s", __func__, strerror(errno));
 		return -1;
 	}
 
 	if (ioctl(fd, SPI_IOC_RD_MODE, &(attr->mode)) < 0) {
-		applog(LOG_ERR, "BF16: %s() failed to get SPI mode: %s", __func__, strerror(errno));
+		applog(LOG_ERR, "BF16: %s() failed to get SPI read mode: %s", __func__, strerror(errno));
 		return -1;
 	}
 
 	/* bits per word */
 	if (ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &(attr->bits)) < 0) {
-		applog(LOG_ERR, "BF16: %s() failed to set SPI bits per word: %s", __func__, strerror(errno));
+		applog(LOG_ERR, "BF16: %s() failed to set SPI write bits per word: %s", __func__, strerror(errno));
 		return -1;
 	}
 
 	if (ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &(attr->bits)) < 0) {
-		applog(LOG_ERR, "BF16: %s() failed to get SPI bits per word: %s", __func__, strerror(errno));
+		applog(LOG_ERR, "BF16: %s() failed to get SPI read bits per word: %s", __func__, strerror(errno));
 		return -1;
 	}
 
 	/* max speed hz */
 	if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &(attr->speed)) < 0) {
-		applog(LOG_ERR, "BF16: %s() failed to set SPI max speed hz: %s", __func__, strerror(errno));
+		applog(LOG_ERR, "BF16: %s() failed to set SPI write max speed hz: %s", __func__, strerror(errno));
 		return -1;
 	}
 
 	if (ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &(attr->speed)) < 0) {
-		applog(LOG_ERR, "BF16: %s() failed to get SPI max speed hz: %s", __func__, strerror(errno));
+		applog(LOG_ERR, "BF16: %s() failed to get SPI read max speed hz: %s", __func__, strerror(errno));
 		return -1;
 	}
 

@@ -11,7 +11,13 @@
 #ifndef USBUTILS_H
 #define USBUTILS_H
 
-#include <libusb.h>
+#ifdef WIN32
+ #include <libusb.h>
+#else
+  /* libusb for some reason defines WIN32 so we have to undefine it */
+  #include <libusb.h>
+  #undef WIN32
+#endif
 
 #include "util.h"
 

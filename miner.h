@@ -119,10 +119,6 @@ static inline int fsync (int fd)
 
 
 #ifdef USE_USBUTILS
-  #include <libusb.h>
-#endif
-
-#ifdef USE_USBUTILS
   #include "usbutils.h"
 #endif
 
