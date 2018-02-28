@@ -707,7 +707,7 @@ uint8_t gen_task_data(uint32_t* midstate, uint32_t merkle, uint32_t ntime,
 		*(uint32_t *)(task + (12 + i)*4) = ntohl(tmp);
 	}
 
-	*(uint32_t *)(task + (12 + i)*4) = ntohl(tmp);
+	*(uint32_t *)(task + 19 * 4) = ntohl(tmp);
 
 	return 0;
 }
